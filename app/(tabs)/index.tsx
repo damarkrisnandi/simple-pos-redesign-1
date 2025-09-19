@@ -1,98 +1,229 @@
-import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
+import { useRouter } from "expo-router";
+import React, { useEffect } from "react";
+import { FlatList, StyleSheet, Text, View } from "react-native";
+import { useSelector } from "react-redux";
+import ProductCard from "../../components/ProductCard";
+import Searchbar from "../../components/Searchbar";
+import { Button } from "../../components/ui/Button";
+import useAuth from "../../hooks/useAuth";
+import useCart from "../../hooks/useCart";
+import useProductsAndCategories from "../../hooks/useProductsAndCategories";
+import { useUserData } from "../../hooks/useUserData";
 
-import { HelloWave } from '@/components/hello-wave';
-import ParallaxScrollView from '@/components/parallax-scroll-view';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { Link } from 'expo-router';
+// Define RootState type for proper typing
+type RootState = {
+  user: {
+    userInfo: any | null;
+    loading: boolean;
+    error: string | null;
+  };
+  auth: {
+    isAuthenticated: boolean;
+    user: any | null;
+  };
+};
 
-export default function HomeScreen() {
+export default function Index() {
+  const auth = useAuth();
+  const router = useRouter();
+
+  const [selectedCategory, setSelectedCategory] = React.useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = React.useState<string>('');
+  const { addToCart, productToCartItem, removeFromCart } = useCart();
+
+  const { isLoading, error, products, categories } = useProductsAndCategories({ selectedCategory, setSelectedCategory, searchQuery, setSearchQuery });
+
+  // Using the useUserData hook to access user data
+  const { userInfo, loading: userLoading, clearUserData } = useUserData();
+
+  // Alternative: Direct access from Redux store
+  const userFromRedux = useSelector((state: RootState) => state.user.userInfo);
+
+  useEffect(() => {
+    if (auth.loading) {
+      // Optionally, you can show a loading indicator here
+      return;
+    }
+    if (!auth.isAuthenticated) {
+      // Redirect to login if not authenticated
+      setTimeout(() => {
+        router.replace("/auth/login");
+      }, 700); // Optional delay for better UX
+    }
+  }, [auth.isAuthenticated, auth.loading, router]);
+
+  if (auth.loading || userLoading) {
+    return (
+      <View
+        style={{
+          flex: 1,
+          justifyContent: "center",
+          alignItems: "center",
+        }}
+      >
+        <Text>Loading...</Text>
+      </View>
+    );
+  }
+
+  if (!auth.isAuthenticated) {
+    return (
+      <View
+        style={{
+          flex: 1,
+          justifyContent: "center",
+          alignItems: "center",
+        }}
+      >
+        <Text>Please log in to continue.</Text>
+      </View>
+    );
+  }
+
+  if (isLoading) {
+    return (
+      <>
+        <View style={styles.container}>
+          <View style={styles.container}>
+            <Searchbar value={searchQuery} onChangeText={setSearchQuery} placeholder="Search..." />
+            {/* HEADER SECTION */}
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 20, width: '100%' }}>
+              <Text style={{ fontSize: 18, fontWeight: 'bold' }}>{selectedCategory ? categories.find((cat: any) => cat.id === selectedCategory)?.name : "All Items"}</Text>
+
+              <Button title="See All" size="small" variant="ghost" onPress={() => { setSelectedCategory(null); }} />
+            </View>
+
+            {/* CATEGORIES SECTION */}
+            <View style={{ flexDirection: 'row', gap: 10, marginBottom: 20 }}>
+              {/* <Button title="+ Add" size="small" variant="secondary" onPress={() => { }} /> */}
+              <Button title="All Items" size="small" variant={selectedCategory === null ? "primary" : "secondary"} onPress={() => { setSelectedCategory(null); }} />
+              {/* <View style={{ width: 1, backgroundColor: '#ccc', marginHorizontal: 5 }} />
+              {categories && categories.map((category: { id: string; name: string; }) => (
+                <Button key={category.id} title={category.name} size="small" variant={selectedCategory === category.id ? "primary" : "secondary"} onPress={() => { setSelectedCategory(category.id); }} />
+              ))} */}
+            </View>
+          </View>
+        </View>
+      </>
+    );
+
+  }
+
+  if (error) {
+    return (
+      <>
+        <View
+          style={{
+            flex: 1,
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+        >
+          <Text>Error occured</Text>
+        </View>
+      </>
+    );
+  }
+
+  // Extract user name from different possible data structures
+  const getUserName = () => {
+    if (userInfo?.data?.user?.username) {
+      return userInfo.data.user.username;
+    }
+    if (userFromRedux?.data?.user?.username) {
+      return userFromRedux.data.user.username;
+    }
+    if (userInfo?.user?.name) {
+      return userInfo.user.name;
+    }
+    return "user";
+  };
+
+
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12',
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <Link href="/modal">
-          <Link.Trigger>
-            <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-          </Link.Trigger>
-          <Link.Preview />
-          <Link.Menu>
-            <Link.MenuAction title="Action" icon="cube" onPress={() => alert('Action pressed')} />
-            <Link.MenuAction
-              title="Share"
-              icon="square.and.arrow.up"
-              onPress={() => alert('Share pressed')}
-            />
-            <Link.Menu title="More" icon="ellipsis">
-              <Link.MenuAction
-                title="Delete"
-                icon="trash"
-                destructive
-                onPress={() => alert('Delete pressed')}
-              />
-            </Link.Menu>
-          </Link.Menu>
-        </Link>
+    <View style={styles.container}>
 
-        <ThemedText>
-          {`Tap the Explore tab to learn more about what's included in this starter app.`}
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          {`When you're ready, run `}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+      {/* <Button title="Category 3" size="small" variant={selectedCategory === "category3" ? "primary" : "secondary"} onPress={() => { setSelectedCategory("category3"); }} /> */}
+      {/* PRODUCTS LIST */}
+      <FlatList
+        data={products.products}
+        numColumns={2}
+        columnWrapperStyle={{
+          justifyContent: 'center',
+          gap: 16,
+          marginVertical: 16
+        }}
+        renderItem={({ item }: any) => (
+          <View style={{ position: 'relative', }}>
+            <ProductCard {...item} onPress={() => {
+              if (productToCartItem(item)) {
+                removeFromCart(item.id);
+              } else {
+                addToCart(item);
+              }
+            }} />
+            {/* <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 10, borderWidth: 1, borderColor: '#eee', borderRadius: 8, marginBottom: 10 }}>
+              <View>
+                <Text style={{ fontSize: 16, fontWeight: '500' }}>{item.name}</Text>
+                <Text style={{ color: '#888', marginTop: 4 }}>${item.price.toFixed(2)}</Text>
+              </View>
+              <Button
+                title={productToCartItem(item) ? "Remove" : "Add"}
+                size="small"
+                variant={productToCartItem(item) ? "danger" : "primary"}
+                onPress={() => {
+                  if (productToCartItem(item)) {
+                    removeFromCart(item.id);
+                  } else {
+                    addToCart(item);
+                  }
+                }}
+              />
+            </View> */}
+          </View>
+        )}
+        keyExtractor={(item: { id: number }) => item.id.toString()}
+        style={{ flex: 1, flexDirection: 'column' }}
+        ListHeaderComponent={
+          <>
+            <Searchbar value={searchQuery} onChangeText={setSearchQuery} placeholder="Search..." />
+            {/* HEADER SECTION */}
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 20, width: '100%' }}>
+              <Text style={{ fontSize: 18, fontWeight: 'bold' }}>{selectedCategory ? categories.find((cat: any) => cat.id === selectedCategory)?.name : "All Items"}</Text>
+
+              <Button title="See All" size="small" variant="ghost" onPress={() => { setSelectedCategory(null); }} />
+            </View>
+
+            {/* CATEGORIES SECTION */}
+            <View style={{ flexDirection: 'row', gap: 3, marginBottom: 20, flexWrap: 'wrap' }}>
+              {/* <Button title="+ Add" size="small" variant="secondary" onPress={() => { }} /> */}
+              <Button title="All Items" size="small" variant={selectedCategory === null ? "primary" : "secondary"} onPress={() => { setSelectedCategory(null); }} />
+              <View style={{ width: 1, backgroundColor: '#ccc', marginHorizontal: 5 }} />
+              {categories && categories.map((category: { id: string; name: string; }) => (
+                <Button key={category.id} title={category.name} size="small" variant={selectedCategory === category.id ? "primary" : "secondary"} onPress={() => { setSelectedCategory(category.id); }} />
+              ))}
+            </View>
+          </>
+        }
+        ListEmptyComponent={
+          <Text>No products found</Text>
+        }
+      />
+
+      {/* ITEMS LIST */}
+    </View >
   );
 }
 
 const styles = StyleSheet.create({
-  titleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
-  },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
-  },
-});
+  container: {
+    flex: 1,
+    // justifyContent: "center",
+    // alignItems: "center",
+    backgroundColor: '#fff',
+    padding: 16,
+    paddingTop: 50,
+    height: '30%',
+    paddingBottom: 100,
+  }
+})
