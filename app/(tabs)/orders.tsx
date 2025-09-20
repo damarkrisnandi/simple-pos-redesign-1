@@ -1,11 +1,15 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
+import FeatureHeader from '../../components/FeatureHeader';
 
 const Orders = () => {
     return (
-        <View style={styles.container}>
-            <Text style={styles.title}>Orders Screen</Text>
-        </View>
+        <>
+            <FeatureHeader title="Orders" subtitle="View and manage your orders" navigateTo='profile' />
+            <View style={styles.container}>
+                <Text style={styles.title}>Orders Screen</Text>
+            </View>
+        </>
     );
 };
 

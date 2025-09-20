@@ -3,6 +3,10 @@
 import Feather from '@expo/vector-icons/Feather';
 import { Tabs } from "expo-router";
 import { Text, View } from "react-native";
+import { useSelector } from 'react-redux';
+import { Badge } from '../../components/ui/Badge';
+import { Colors } from '../../constants/Colors';
+import { CartItem } from '../../models/product';
 
 
 type TabIconProps = {
@@ -27,13 +31,13 @@ const tabs = [
     showTitle: true,
     showIcon: true,
   },
-  {
-    name: "profile",
-    title: "Profile",
-    icon: 'user',
-    showTitle: true,
-    showIcon: true,
-  }
+  // {
+  //   name: "profile",
+  //   title: "Profile",
+  //   icon: 'user',
+  //   showTitle: false,
+  //   showIcon: true,
+  // }
 ];
 
 const TabIcon = ({ icon, title, focused, showTitle, showIcon }: TabIconProps) => {
@@ -50,22 +54,21 @@ const TabIcon = ({ icon, title, focused, showTitle, showIcon }: TabIconProps) =>
             backgroundColor: '#c0e863',
             padding: 5,
             borderRadius: 50,
-            minWidth: 100,
+            minWidth: 120,
             minHeight: 40,
           }}
         >
           {showIcon && <Feather name={icon} size={18} style={{
-            color: '#000',
+            color: Colors.secondary,
             marginRight: showTitle ? 4 : 0,
           }} />}
           {showTitle && <Text style={{
-            color: '#000',
+            color: Colors.secondary,
             fontSize: 12,
             fontWeight: '600',
           }}>{title}</Text>}
 
         </View>
-
       </>
     )
   }
@@ -79,15 +82,14 @@ const TabIcon = ({ icon, title, focused, showTitle, showIcon }: TabIconProps) =>
           alignItems: "center",
           flexDirection: 'row',
           gap: 4,
-          // backgroundColor: '#c0e863',
           padding: 5,
           borderRadius: 50,
-          minWidth: 100,
+          minWidth: 120,
           minHeight: 40,
         }}
       >
         {showIcon && <Feather name={icon} size={18} style={{
-          color: '#000',
+          color: '#fff',
           marginRight: showTitle ? 4 : 0,
         }} />}
         {/* {showTitle && <Text style={{
@@ -100,6 +102,71 @@ const TabIcon = ({ icon, title, focused, showTitle, showIcon }: TabIconProps) =>
     </>
   )
 }
+
+const OrdersTabIcon = ({ icon, title, focused, showTitle, showIcon }: TabIconProps) => {
+  const cartCounts = useSelector((state: any) => state.cart.items.reduce((curr: number, item: CartItem) => curr + item.quantity, 0) ?? undefined);
+
+  if (focused) {
+    return (
+      <>
+        <View
+          style={{
+            flex: 1,
+            justifyContent: "center",
+            alignItems: "center",
+            flexDirection: 'row',
+            gap: 4,
+            backgroundColor: '#c0e863',
+            padding: 5,
+            borderRadius: 50,
+            minWidth: 120,
+            minHeight: 40,
+          }}
+        >
+          {showIcon && <Feather name={icon} size={18} style={{
+            color: Colors.secondary,
+            marginRight: showTitle ? 4 : 0,
+          }} />}
+          {showTitle && <Text style={{
+            color: Colors.secondary,
+            fontSize: 9,
+            fontWeight: '600',
+          }}>{title}</Text>}
+          {cartCounts > 0 && <Badge variant='secondary' label={cartCounts} />}
+        </View>
+      </>
+    )
+  }
+
+  return (
+    <>
+      <View
+        style={{
+          flex: 1,
+          justifyContent: "center",
+          alignItems: "center",
+          flexDirection: 'row',
+          gap: 4,
+          padding: 5,
+          borderRadius: 50,
+          minWidth: 100,
+          minHeight: 40,
+        }}
+      >
+        {showIcon && <Feather name={icon} size={18} style={{
+          color: '#fff',
+          marginRight: showTitle ? 4 : 0,
+        }} />}
+        {/* {showTitle && <Text style={{
+          color: '#000',
+          fontSize: 12,
+          fontWeight: '600',
+        }}>{title}</Text>} */}
+        {cartCounts > 0 && <Badge variant='primary' label={cartCounts} textStyle={{ color: Colors.secondary, fontSize: 12, fontWeight: '600' }} />}
+      </View>
+    </>
+  )
+}
 export default function TabLayout() {
   return (
     <Tabs
@@ -108,19 +175,25 @@ export default function TabLayout() {
         tabBarItemStyle: {
           width: '100%',
           height: '100%',
-          justifyContent: 'center',
+          justifyContent: 'space-between',
           alignItems: 'center',
+          shadowColor: '#f3f3f3',
+          shadowOpacity: 0.1,
+          shadowRadius: 6,
+          shadowOffset: { width: 0, height: 2 },
         },
         tabBarStyle: {
-          backgroundColor: '#f3f3f3',
+          backgroundColor: Colors.secondary,
           borderRadius: 50,
-          marginHorizontal: 10,
+          marginHorizontal: 70,
           marginBottom: 50,
           height: 52,
           position: 'absolute',
+
           overflow: 'hidden',
           borderWidth: 0,
-          // paddingHorizontal: 2,
+          // width: 300,
+          paddingHorizontal: 10,
           paddingTop: 7,
           paddingBottom: 5,
           // shadowOffset: {
@@ -137,15 +210,25 @@ export default function TabLayout() {
           options={{
             title: tab.title,
 
+            tabBarActiveTintColor: Colors.primary,
             headerShown: false,
             tabBarIcon: ({ focused }) => (
-              <TabIcon
-                icon={tab.icon}
-                title={tab.title}
-                focused={focused}
-                showIcon={tab.showIcon}
-                showTitle={tab.showTitle}
-              />
+              <>
+                {tab.name === 'orders' ? <OrdersTabIcon
+                  icon={tab.icon}
+                  title={tab.title}
+                  focused={focused}
+                  showIcon={tab.showIcon}
+                  showTitle={tab.showTitle}
+                /> : <TabIcon
+                  icon={tab.icon}
+                  title={tab.title}
+                  focused={focused}
+                  showIcon={tab.showIcon}
+                  showTitle={tab.showTitle}
+                />
+                }
+              </>
             )
           }}
         />

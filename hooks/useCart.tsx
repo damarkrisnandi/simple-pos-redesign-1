@@ -1,9 +1,10 @@
 import { CartItem } from "@/models/product";
 import { addItemToCart, clearCart as clearCartAction, removeItemFromCart } from "@/store/slices/cartSlices";
+import { RootState } from "@/store/store";
 import { useDispatch, useSelector } from "react-redux";
 
 const useCart = () => {
-  const items = useSelector(({ items }: { items: CartItem[]}) => items);
+  const items = useSelector((state: RootState) => state.cart.items);
   const dispatch = useDispatch();
 
   const productToCartItem = (product: any): CartItem => ({
@@ -14,10 +15,10 @@ const useCart = () => {
 
   const addToCart = (item: CartItem) => {
     const productsInCart = items?.filter(i => i.productId === item.productId) ?? [];
-    const productsInCartCount = productsInCart.reduce((curr, i) => curr + i.quantity, 0);
+    const productsInCartCount = productsInCart.reduce((curr, i) => curr + (i.quantity ?? 0), 0);
     console.log()
     if (productsInCartCount + item.quantity <= 0) {
-      dispatch(removeItemFromCart(item.productId));  
+      dispatch(removeItemFromCart(item.productId));
       return;
     }
     dispatch({ type: addItemToCart.type, payload: item });

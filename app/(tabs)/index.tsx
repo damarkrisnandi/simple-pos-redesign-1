@@ -2,6 +2,7 @@ import { useRouter } from "expo-router";
 import React, { useEffect } from "react";
 import { FlatList, StyleSheet, Text, View } from "react-native";
 import { useSelector } from "react-redux";
+import FeatureHeader from "../../components/FeatureHeader";
 import ProductCard from "../../components/ProductCard";
 import Searchbar from "../../components/Searchbar";
 import { Button } from "../../components/ui/Button";
@@ -31,7 +32,7 @@ export default function Index() {
   const [searchQuery, setSearchQuery] = React.useState<string>('');
   const { addToCart, productToCartItem, removeFromCart } = useCart();
 
-  const { isLoading, error, products, categories } = useProductsAndCategories({ selectedCategory, setSelectedCategory, searchQuery, setSearchQuery });
+  const { isLoading, error, products, categories } = useProductsAndCategories({ selectedCategory, setSelectedCategory, searchQuery, setSearchQuery, isAuthenticated: auth.isAuthenticated });
 
   // Using the useUserData hook to access user data
   const { userInfo, loading: userLoading, clearUserData } = useUserData();
@@ -83,6 +84,7 @@ export default function Index() {
   if (isLoading) {
     return (
       <>
+        <FeatureHeader title="Products" subtitle="Browse and order your favorite items" />
         <View style={styles.container}>
           <View style={styles.container}>
             <Searchbar value={searchQuery} onChangeText={setSearchQuery} placeholder="Search..." />
@@ -112,6 +114,7 @@ export default function Index() {
   if (error) {
     return (
       <>
+        <FeatureHeader title="Products" subtitle="Browse and order your favorite items" />
         <View
           style={{
             flex: 1,
@@ -125,93 +128,79 @@ export default function Index() {
     );
   }
 
-  // Extract user name from different possible data structures
-  const getUserName = () => {
-    if (userInfo?.data?.user?.username) {
-      return userInfo.data.user.username;
-    }
-    if (userFromRedux?.data?.user?.username) {
-      return userFromRedux.data.user.username;
-    }
-    if (userInfo?.user?.name) {
-      return userInfo.user.name;
-    }
-    return "user";
-  };
-
-
   return (
-    <View style={styles.container}>
+    <>
+      <FeatureHeader title="Products" subtitle="Browse and order your favorite items" navigateTo="profile" />
+      <View style={styles.container}>
 
-      {/* <Button title="Category 3" size="small" variant={selectedCategory === "category3" ? "primary" : "secondary"} onPress={() => { setSelectedCategory("category3"); }} /> */}
-      {/* PRODUCTS LIST */}
-      <FlatList
-        data={products.products}
-        numColumns={2}
-        columnWrapperStyle={{
-          justifyContent: 'center',
-          gap: 16,
-          marginVertical: 16
-        }}
-        renderItem={({ item }: any) => (
-          <View style={{ position: 'relative', }}>
-            <ProductCard {...item} onPress={() => {
-              if (productToCartItem(item)) {
-                removeFromCart(item.id);
-              } else {
-                addToCart(item);
-              }
-            }} />
-            {/* <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 10, borderWidth: 1, borderColor: '#eee', borderRadius: 8, marginBottom: 10 }}>
-              <View>
-                <Text style={{ fontSize: 16, fontWeight: '500' }}>{item.name}</Text>
-                <Text style={{ color: '#888', marginTop: 4 }}>${item.price.toFixed(2)}</Text>
-              </View>
-              <Button
-                title={productToCartItem(item) ? "Remove" : "Add"}
-                size="small"
-                variant={productToCartItem(item) ? "danger" : "primary"}
-                onPress={() => {
-                  if (productToCartItem(item)) {
-                    removeFromCart(item.id);
-                  } else {
-                    addToCart(item);
-                  }
-                }}
+        {/* <Button title="Category 3" size="small" variant={selectedCategory === "category3" ? "primary" : "secondary"} onPress={() => { setSelectedCategory("category3"); }} /> */}
+        {/* PRODUCTS LIST */}
+        <FlatList
+          data={products.products}
+          numColumns={2}
+          columnWrapperStyle={{
+            justifyContent: 'center',
+            gap: 16,
+            marginVertical: 8
+          }}
+          renderItem={({ item }: any) => (
+            <View style={{ position: 'relative', }}>
+              <ProductCard {...item}
+                onAddToCart={() => addToCart(productToCartItem(item))}
+                onRemoveFromCart={() => removeFromCart(item.id)}
+                itemsCount={0}
               />
-            </View> */}
-          </View>
-        )}
-        keyExtractor={(item: { id: number }) => item.id.toString()}
-        style={{ flex: 1, flexDirection: 'column' }}
-        ListHeaderComponent={
-          <>
-            <Searchbar value={searchQuery} onChangeText={setSearchQuery} placeholder="Search..." />
-            {/* HEADER SECTION */}
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 20, width: '100%' }}>
-              <Text style={{ fontSize: 18, fontWeight: 'bold' }}>{selectedCategory ? categories.find((cat: any) => cat.id === selectedCategory)?.name : "All Items"}</Text>
-
-              <Button title="See All" size="small" variant="ghost" onPress={() => { setSelectedCategory(null); }} />
+              {/* <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 10, borderWidth: 1, borderColor: '#eee', borderRadius: 8, marginBottom: 10 }}>
+                <View>
+                  <Text style={{ fontSize: 16, fontWeight: '500' }}>{item.name}</Text>
+                  <Text style={{ color: '#888', marginTop: 4 }}>${item.price.toFixed(2)}</Text>
+                </View>
+                <Button
+                  title={productToCartItem(item) ? "Remove" : "Add"}
+                  size="small"
+                  variant={productToCartItem(item) ? "danger" : "primary"}
+                  onPress={() => {
+                    if (productToCartItem(item)) {
+                      removeFromCart(item.id);
+                    } else {
+                      addToCart(item);
+                    }
+                  }}
+                />
+              </View> */}
             </View>
+          )}
+          keyExtractor={(item: { id: number }) => item.id.toString()}
+          style={{ flex: 1, flexDirection: 'column' }}
+          ListHeaderComponent={
+            <>
+              <Searchbar value={searchQuery} onChangeText={setSearchQuery} placeholder="Search..." />
+              {/* HEADER SECTION */}
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 20, width: '100%' }}>
+                <Text style={{ fontSize: 18, fontWeight: 'bold' }}>{selectedCategory ? categories.find((cat: any) => cat.id === selectedCategory)?.name : "All Items"}</Text>
 
-            {/* CATEGORIES SECTION */}
-            <View style={{ flexDirection: 'row', gap: 3, marginBottom: 20, flexWrap: 'wrap' }}>
-              {/* <Button title="+ Add" size="small" variant="secondary" onPress={() => { }} /> */}
-              <Button title="All Items" size="small" variant={selectedCategory === null ? "primary" : "secondary"} onPress={() => { setSelectedCategory(null); }} />
-              <View style={{ width: 1, backgroundColor: '#ccc', marginHorizontal: 5 }} />
-              {categories && categories.map((category: { id: string; name: string; }) => (
-                <Button key={category.id} title={category.name} size="small" variant={selectedCategory === category.id ? "primary" : "secondary"} onPress={() => { setSelectedCategory(category.id); }} />
-              ))}
-            </View>
-          </>
-        }
-        ListEmptyComponent={
-          <Text>No products found</Text>
-        }
-      />
+                <Button title="See All" size="small" variant="ghost" onPress={() => { setSelectedCategory(null); }} />
+              </View>
 
-      {/* ITEMS LIST */}
-    </View >
+              {/* CATEGORIES SECTION */}
+              <View style={{ flexDirection: 'row', gap: 3, marginBottom: 20, flexWrap: 'wrap' }}>
+                {/* <Button title="+ Add" size="small" variant="secondary" onPress={() => { }} /> */}
+                <Button title="All Items" size="small" variant={selectedCategory === null ? "primary" : "secondary"} onPress={() => { setSelectedCategory(null); }} />
+                <View style={{ width: 1, backgroundColor: '#ccc', marginHorizontal: 5 }} />
+                {categories && categories.map((category: { id: string; name: string; }) => (
+                  <Button key={category.id} title={category.name} size="small" variant={selectedCategory === category.id ? "primary" : "secondary"} onPress={() => { setSelectedCategory(category.id); }} />
+                ))}
+              </View>
+            </>
+          }
+          ListEmptyComponent={
+            <Text>No products found</Text>
+          }
+        />
+
+        {/* ITEMS LIST */}
+      </View >
+    </>
   );
 }
 
@@ -222,7 +211,7 @@ const styles = StyleSheet.create({
     // alignItems: "center",
     backgroundColor: '#fff',
     padding: 16,
-    paddingTop: 50,
+    paddingTop: 12,
     height: '30%',
     paddingBottom: 100,
   }
