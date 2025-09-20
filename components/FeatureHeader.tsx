@@ -1,8 +1,8 @@
 import Feather from '@expo/vector-icons/Feather';
-import { useRouter } from 'expo-router';
 import React from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { Colors } from '../constants/Colors';
+import { useNavigationHandler } from '../hooks/useNavigationHandler';
 
 interface FeatureHeaderProps {
     title: string;
@@ -11,11 +11,11 @@ interface FeatureHeaderProps {
 }
 
 const ProfileNav = () => {
-    const router = useRouter();
+    const { safeNavigate } = useNavigationHandler();
 
     return (
         <View>
-            <TouchableOpacity onPress={() => router.push('/profile')}>
+            <TouchableOpacity onPress={() => safeNavigate('/profile')}>
                 <Feather name="user" size={24} color="black" />
             </TouchableOpacity>
         </View>
@@ -23,12 +23,24 @@ const ProfileNav = () => {
 }
 
 const HomeNav = () => {
-    const router = useRouter();
+    const { safeNavigate } = useNavigationHandler();
 
     return (
         <View>
-            <TouchableOpacity onPress={() => router.push('/')}>
+            <TouchableOpacity onPress={() => safeNavigate('/')}>
                 <Feather name="grid" size={24} color="black" />
+            </TouchableOpacity>
+        </View>
+    );
+}
+
+const BackNav = () => {
+    const { safeGoBack } = useNavigationHandler();
+
+    return (
+        <View>
+            <TouchableOpacity onPress={safeGoBack}>
+                <Feather name="arrow-left" size={24} color="black" />
             </TouchableOpacity>
         </View>
     );
@@ -37,9 +49,13 @@ const HomeNav = () => {
 const FeatureHeader: React.FC<FeatureHeaderProps> = ({ title, subtitle, navigateTo }) => (
     <View style={styles.container}>
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-            <View>
-                <Text style={styles.title}>{title}</Text>
-                {subtitle && <Text style={styles.subtitle}>{subtitle}</Text>}
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+                <BackNav />
+
+                <View>
+                    <Text style={styles.title}>{title}</Text>
+                    {subtitle && <Text style={styles.subtitle}>{subtitle}</Text>}
+                </View>
             </View>
 
 
@@ -47,7 +63,6 @@ const FeatureHeader: React.FC<FeatureHeaderProps> = ({ title, subtitle, navigate
                 navigateTo === 'profile' ? <ProfileNav /> : <HomeNav />
             }
         </View>
-
     </View>
 );
 

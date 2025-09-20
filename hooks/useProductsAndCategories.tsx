@@ -6,13 +6,11 @@ import { getProducts } from "../services/products";
 
 export interface Props {
     selectedCategory: string | null;
-    setSelectedCategory: (category: string | null) => void;
     searchQuery: string;
-    setSearchQuery: (query: string) => void;
     isAuthenticated?: boolean;
 }
 
-const useProductsAndCategories = ({ selectedCategory, setSelectedCategory, searchQuery, setSearchQuery, isAuthenticated }: Props) => {
+const useProductsAndCategories = ({ selectedCategory, searchQuery, isAuthenticated }: Props) => {
     // const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
     // const [searchQuery, setSearchQuery] = useState('');
     const [debouncedSearchQuery, setDebouncedSearchQuery] = useState(searchQuery ?? '');
@@ -54,7 +52,7 @@ const useProductsAndCategories = ({ selectedCategory, setSelectedCategory, searc
     const isLoading = isLoadingCategories || productsLoading;
     const error = errorCategories || productsError;
 
-    return { selectedCategory, setSelectedCategory, searchQuery, setSearchQuery, isLoading, error, products: productsResponse?.data, categories: categoriesResponse?.data };
+    return { selectedCategory, searchQuery, isLoading, error, products: productsResponse?.data, categories: categoriesResponse?.data };
 }
 
 export default useProductsAndCategories;

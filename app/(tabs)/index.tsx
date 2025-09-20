@@ -1,7 +1,6 @@
 import { useRouter } from "expo-router";
 import React, { useEffect } from "react";
 import { FlatList, StyleSheet, Text, View } from "react-native";
-import { useSelector } from "react-redux";
 import FeatureHeader from "../../components/FeatureHeader";
 import ProductCard from "../../components/ProductCard";
 import Searchbar from "../../components/Searchbar";
@@ -32,13 +31,10 @@ export default function Index() {
   const [searchQuery, setSearchQuery] = React.useState<string>('');
   const { addToCart, productToCartItem, removeFromCart } = useCart();
 
-  const { isLoading, error, products, categories } = useProductsAndCategories({ selectedCategory, setSelectedCategory, searchQuery, setSearchQuery, isAuthenticated: auth.isAuthenticated });
+  const { isLoading, error, products, categories } = useProductsAndCategories({ selectedCategory, searchQuery, isAuthenticated: auth.isAuthenticated });
 
   // Using the useUserData hook to access user data
-  const { userInfo, loading: userLoading, clearUserData } = useUserData();
-
-  // Alternative: Direct access from Redux store
-  const userFromRedux = useSelector((state: RootState) => state.user.userInfo);
+  const { loading: userLoading } = useUserData();
 
   useEffect(() => {
     if (auth.loading) {
@@ -136,7 +132,7 @@ export default function Index() {
         {/* <Button title="Category 3" size="small" variant={selectedCategory === "category3" ? "primary" : "secondary"} onPress={() => { setSelectedCategory("category3"); }} /> */}
         {/* PRODUCTS LIST */}
         <FlatList
-          data={products.products}
+          data={products?.products ?? []}
           numColumns={2}
           columnWrapperStyle={{
             justifyContent: 'center',
@@ -197,8 +193,6 @@ export default function Index() {
             <Text>No products found</Text>
           }
         />
-
-        {/* ITEMS LIST */}
       </View >
     </>
   );
