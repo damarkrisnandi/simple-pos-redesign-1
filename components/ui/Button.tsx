@@ -1,3 +1,4 @@
+import Feather from '@expo/vector-icons/Feather';
 import React from 'react';
 import {
     ActivityIndicator,
@@ -5,19 +6,22 @@ import {
     Text,
     TextStyle,
     TouchableOpacity,
+    View,
     ViewStyle,
 } from 'react-native';
 import { Colors } from '../../constants/Colors';
 import { BorderRadius, FontSizes, FontWeights, Shadows, Spacing } from '../../constants/Layout';
 
 interface ButtonProps {
-    title: string;
+    title?: string;
     onPress: () => void;
     variant?: 'primary' | 'secondary' | 'outline' | 'ghost' | 'danger';
     size?: 'small' | 'medium' | 'large';
     disabled?: boolean;
     loading?: boolean;
     fullWidth?: boolean;
+    icon?: keyof typeof Feather.glyphMap;
+    iconOnly?: boolean;
     style?: ViewStyle;
     textStyle?: TextStyle;
 }
@@ -30,15 +34,46 @@ export const Button: React.FC<ButtonProps> = ({
     disabled = false,
     loading = false,
     fullWidth = false,
+    icon,
+    iconOnly = false,
     style,
     textStyle,
 }) => {
+    // Determine if we should show the icon only
+    const isIconOnly = iconOnly && icon;
+
+    // Get icon size based on button size
+    const getIconSize = () => {
+        switch (size) {
+            case 'small':
+                return 16;
+            case 'large':
+                return 24;
+            default:
+                return 20;
+        }
+    };
+
+    // Get icon color based on variant
+    const getIconColor = () => {
+        if (disabled) return Colors.gray;
+
+        switch (variant) {
+            case 'outline':
+            case 'ghost':
+                return Colors.primary;
+            default:
+                return Colors.white;
+        }
+    };
+
     const buttonStyle = [
         styles.base,
         styles[variant],
         styles[size],
         fullWidth && styles.fullWidth,
         disabled && styles.disabled,
+        isIconOnly && styles.iconOnly,
         style,
     ];
 
@@ -50,6 +85,53 @@ export const Button: React.FC<ButtonProps> = ({
         textStyle,
     ];
 
+    const renderContent = () => {
+        if (loading) {
+            return (
+                <ActivityIndicator
+                    size="small"
+                    color={variant === 'outline' || variant === 'ghost' ? Colors.primary : Colors.white}
+                />
+            );
+        }
+
+        if (isIconOnly) {
+            return (
+                <Feather
+                    name={icon!}
+                    size={getIconSize()}
+                    color={getIconColor()}
+                />
+            );
+        }
+
+        if (icon && title) {
+            return (
+                <View style={styles.iconTextContainer}>
+                    <Feather
+                        name={icon}
+                        size={getIconSize()}
+                        color={getIconColor()}
+                        style={styles.iconWithText}
+                    />
+                    <Text style={textStyleCombined}>{title}</Text>
+                </View>
+            );
+        }
+
+        if (icon && !title) {
+            return (
+                <Feather
+                    name={icon}
+                    size={getIconSize()}
+                    color={getIconColor()}
+                />
+            );
+        }
+
+        return <Text style={textStyleCombined}>{title}</Text>;
+    };
+
     return (
         <TouchableOpacity
             style={buttonStyle}
@@ -57,14 +139,7 @@ export const Button: React.FC<ButtonProps> = ({
             disabled={disabled || loading}
             activeOpacity={0.8}
         >
-            {loading ? (
-                <ActivityIndicator
-                    size="small"
-                    color={variant === 'outline' || variant === 'ghost' ? Colors.primary : Colors.white}
-                />
-            ) : (
-                <Text style={textStyleCombined}>{title}</Text>
-            )}
+            {renderContent()}
         </TouchableOpacity>
     );
 };
@@ -125,6 +200,22 @@ const styles = StyleSheet.create({
     },
     fullWidth: {
         width: '100%',
+    },
+
+    // Icon styles
+    iconOnly: {
+        paddingHorizontal: Spacing.sm,
+        aspectRatio: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    iconTextContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    iconWithText: {
+        marginRight: Spacing.xs,
     },
 
     // Text styles

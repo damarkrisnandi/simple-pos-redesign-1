@@ -1,4 +1,6 @@
 import Feather from '@expo/vector-icons/Feather';
+import { DrawerActions } from '@react-navigation/native';
+import { useNavigation } from 'expo-router';
 import React from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { Colors } from '../constants/Colors';
@@ -46,11 +48,24 @@ const BackNav = () => {
     );
 }
 
+const MenuNavWithDrawer = () => {
+    // const { safeGoBack } = useNavigationHandler();
+    const navigation = useNavigation();
+
+    return (
+        <View>
+            <TouchableOpacity onPress={() => { navigation.dispatch(DrawerActions.toggleDrawer()); }}>
+                <Feather name="menu" size={24} color="black" />
+            </TouchableOpacity>
+        </View>
+    );
+}
+
 const FeatureHeader: React.FC<FeatureHeaderProps> = ({ title, subtitle, navigateTo }) => (
     <View style={styles.container}>
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-                <BackNav />
+                <MenuNavWithDrawer />
 
                 <View>
                     <Text style={styles.title}>{title}</Text>

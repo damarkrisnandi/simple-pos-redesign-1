@@ -1,9 +1,7 @@
-import { useMutation } from '@tanstack/react-query';
-import { useRouter } from 'expo-router';
+import { useLocalSearchParams } from 'expo-router';
 import React from 'react';
-import { FlatList, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import FeatureHeader from '../../components/FeatureHeader';
-import OrdersCard from '../../components/OrderCard';
 import { Button } from '../../components/ui/Button';
 import { Divider } from '../../components/ui/Divider';
 import { Colors } from '../../constants/Colors';
@@ -11,74 +9,32 @@ import useAuth from '../../hooks/useAuth';
 import useCart from '../../hooks/useCart';
 import useProductsAndCategories from '../../hooks/useProductsAndCategories';
 import { Product } from '../../models/product';
-import { createOrders } from '../../services/orders';
 
 const TAX_RATE = 0.1; // 10% tax rate
 const SHIPPING_FEE = 5.0; // Flat shipping fee
 
-const Orders = () => {
+const Payments: React.FC = () => {
     const auth = useAuth();
-    const { items, addToCart, productToCartItem, removeFromCart } = useCart();
+    // Extract orderId from the URL parameters
+    const { orderId } = useLocalSearchParams<{ orderId: string }>();
+    const { items } = useCart();
     const { products } = useProductsAndCategories({ selectedCategory: null, searchQuery: '', isAuthenticated: auth.isAuthenticated });
-
-    const router = useRouter();
 
     const total = items.reduce((total, item) => {
         const product = products?.products?.find((p: Product) => p.id === item.productId);
         return Math.floor((total + (product ? product.price * item.quantity : 0)) * 100) / 100;
     }, 0);
 
-    const { mutate: proceedToPayment, isPending: isPendingOrder } = useMutation({
-        mutationKey: ['createOrder'],
-        mutationFn: createOrders,
-        onSuccess: (data) => {
-            console.log('Order created successfully:', data);
-            // Optionally clear the cart or navigate to another screen
-            // clearCart();
-            router.push(`../payments/${data.data.id}`); // Navigate to order confirmation screen
-        },
-        onError: (error) => {
-            console.error('Error creating order:', error);
-            // Handle error, e.g., show a notification
-        }
-    })
+    const handlePayment = () => {
+        // Handle payment logic here
+        console.log('Processing payment for order:', orderId);
+    };
+
     return (
         <>
-            <FeatureHeader title="Orders" subtitle="View and manage your orders" navigateTo='profile' />
+            <FeatureHeader title={`Payment`} subtitle={`Payments for Order #${orderId}`} navigateTo='home' />
             <View style={styles.container}>
-
-                {/* <Button title="Category 3" size="small" variant={selectedCategory === "category3" ? "primary" : "secondary"} onPress={() => { setSelectedCategory("category3"); }} /> */}
-                {/* PRODUCTS LIST */}
-                <FlatList
-                    data={products?.products?.filter((product: Product) => items.some(item => item.productId === product.id)) ?? []}
-                    numColumns={1}
-
-                    renderItem={({ item }: any) => (
-                        <View style={{ position: 'relative', width: '100%', marginBottom: 12 }}>
-                            <OrdersCard {...item}
-                                onAddToCart={() => addToCart(productToCartItem(item))}
-                                onRemoveFromCart={() => removeFromCart(item.id)}
-                                itemsCount={0}
-                            />
-
-                        </View>
-                    )}
-
-                    ListHeaderComponent={
-                        <View style={{ width: '100%', paddingHorizontal: 16, marginBottom: 8 }}>
-
-                        </View>
-                    }
-                    keyExtractor={(item: { id: number }) => item.id.toString()}
-                    style={{ flex: 1, flexDirection: 'column', width: '100%', paddingHorizontal: 16 }}
-                    ListEmptyComponent={
-                        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', marginTop: 50 }}>
-                            <Text style={{ fontSize: 16, color: '#888', textAlign: 'center' }}>No orders yet. Start adding some products to your cart!</Text>
-                        </View>
-
-                    }
-                />
-
+                {/* <Text style={styles.title}>Payment for Order #{orderId}</Text> */}
                 {total > 0 &&
                     <View style={{ padding: 16, width: '100%', borderTopWidth: 1, borderColor: '#eee', backgroundColor: '#fafafa' }}>
 
@@ -102,16 +58,16 @@ const Orders = () => {
                     </View>}
 
                 <Button
-                    title="Proceed to Checkout"
-                    onPress={() => { proceedToPayment(items); }}
+                    title="Simulate Payment"
+                    onPress={() => { handlePayment(); }}
                     style={{ marginTop: 20, width: '90%' }}
                     variant='primary'
                     size='medium'
-                    disabled={items.length === 0 || isPendingOrder}
+                    disabled={items.length === 0}
                     textStyle={{ fontSize: 18, fontWeight: '600', color: Colors.secondary }}
-                    loading={isPendingOrder}
+                    loading={false}
                 />
-            </View >
+            </View>
         </>
     );
 };
@@ -122,12 +78,25 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
         backgroundColor: '#fff',
-        paddingBottom: 120,
+        padding: 24,
     },
     title: {
-        fontSize: 24,
+        fontSize: 22,
         fontWeight: 'bold',
+        marginBottom: 32,
+        color: '#333',
+    },
+    button: {
+        backgroundColor: '#007AFF',
+        paddingVertical: 14,
+        paddingHorizontal: 36,
+        borderRadius: 8,
+    },
+    buttonText: {
+        color: '#fff',
+        fontSize: 18,
+        fontWeight: '600',
     },
 });
 
-export default Orders;
+export default Payments;

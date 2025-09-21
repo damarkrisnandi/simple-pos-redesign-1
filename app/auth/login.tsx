@@ -2,7 +2,6 @@ import { useRouter } from 'expo-router';
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { Button } from '../../components/ui/Button';
-import { Card } from '../../components/ui/Card';
 import { Input } from '../../components/ui/Input';
 import { Colors } from '../../constants/Colors';
 import usePost from '../../hooks/usePost';
@@ -18,7 +17,7 @@ import useToast from '../../hooks/useToast';
 const Login = () => {
     const router = useRouter();
     const { saveUserData } = useUserData();
-    const { toastVisible, toastMessage, toastVariant, showToast, hideToast, setToastVisible } = useToast();
+    const { toastVisible, toastMessage, toastVariant, showToast, setToastVisible } = useToast();
 
     const {
         mutate: loginMutation,
@@ -48,7 +47,7 @@ const Login = () => {
             showToast(error.message || "An error occurred during login.", 'error');
         },
     });
-    const { control, reset, handleSubmit } = useForm({
+    const { control, handleSubmit } = useForm({
         resolver: zodResolver(z.object({
             email: z.string().email(),
             password: z.string().min(6),
@@ -72,28 +71,41 @@ const Login = () => {
 
     return (
         <View style={styles.container}>
-            <Card>
-                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-start', marginBottom: 16, }}>
-                    <View style={{ backgroundColor: Colors.secondary, padding: 4, paddingLeft: 8, borderTopLeftRadius: 4, borderBottomLeftRadius: 4 }}>
-                        <Text style={{ color: '#fff', fontWeight: 'light', fontSize: 24 }}>Simple</Text>
+            {/* <StatusBar barStyle="light-content" backgroundColor={Colors.primary} /> */}
+
+            {/* Header Section */}
+            <View style={styles.headerSection}>
+                <View style={styles.logoContainer}>
+                    <View style={styles.logoWrapper}>
+                        <View style={styles.logoLeft}>
+                            <Text style={styles.logoTextLeft}>Simple</Text>
+                        </View>
+                        <View style={styles.logoRight}>
+                            <Text style={styles.logoTextRight}>POS</Text>
+                        </View>
                     </View>
-                    <View style={{ backgroundColor: Colors.primary, padding: 4, paddingRight: 8, borderTopRightRadius: 4, borderBottomRightRadius: 4 }}>
-                        <Text style={{ color: '#7e7e7eff', fontWeight: 'bold', fontSize: 24 }}>POS</Text>
-                    </View>
+                    <Text style={styles.welcomeText}>Welcome back!</Text>
+                    <Text style={styles.subtitleText}>Sign in to continue to your account</Text>
                 </View>
+            </View>
+
+            {/* Form Section */}
+            <View style={styles.formSection}>
+                {/* <Card style={styles.loginCard} variant="elevated"> */}
+                <Text style={styles.loginTitle}>Login</Text>
 
                 <Controller
                     name="email"
                     control={control}
                     render={({ field: { onChange, value } }) => (
-                        <View style={{ marginBottom: 5, gap: 2 }}>
-                            <Input
-                                label="Email"
-                                placeholder="Enter your email"
-                                value={value}
-                                onChangeText={onChange}
-                            />
-                        </View>
+                        <Input
+                            label="Email Address"
+                            placeholder="Enter your email"
+                            value={value}
+                            onChangeText={onChange}
+                            variant="outlined"
+                            containerStyle={styles.inputContainer}
+                        />
                     )}
                 />
 
@@ -101,20 +113,34 @@ const Login = () => {
                     name="password"
                     control={control}
                     render={({ field: { onChange, value } }) => (
-                        <View style={{ marginBottom: 16, gap: 2 }}>
-                            <Input
-                                label="Password"
-                                placeholder="Enter your password"
-                                value={value}
-                                onChangeText={onChange}
-                                secureTextEntry
-                            />
-                        </View>
+                        <Input
+                            label="Password"
+                            placeholder="Enter your password"
+                            value={value}
+                            onChangeText={onChange}
+                            secureTextEntry
+                            variant="outlined"
+                            containerStyle={styles.inputContainer}
+                        />
                     )}
                 />
 
-                <Button title={isLoading ? 'Logging in...' : 'Login'} variant={isLoading ? 'secondary' : 'primary'} onPress={handleSubmit(onSubmit)} />
-            </Card>
+                <Button
+                    title={isLoading ? 'Signing in...' : 'Sign In'}
+                    icon={isLoading ? undefined : 'log-in'}
+                    variant="primary"
+                    size="large"
+                    fullWidth
+                    loading={isLoading}
+                    onPress={handleSubmit(onSubmit)}
+                    style={styles.loginButton}
+                />
+
+                <View style={styles.helpSection}>
+                    <Text style={styles.helpText}>Need help? Contact support</Text>
+                </View>
+                {/* </Card> */}
+            </View>
 
             <Toast
                 visible={toastVisible}
@@ -130,38 +156,118 @@ const Login = () => {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
+        backgroundColor: Colors.primary,
+    },
+    headerSection: {
+        flex: 0.45,
         justifyContent: 'center',
-        paddingHorizontal: 24,
-        backgroundColor: '#f3f3f3',
-    },
-    title: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        // marginBottom: 32,
-        alignSelf: 'center',
-        color: '#333',
-    },
-    input: {
-        height: 48,
-        borderColor: '#ccc',
-        borderWidth: 1,
-        borderRadius: 8,
-        marginBottom: 16,
-        paddingHorizontal: 12,
-        fontSize: 16,
-        backgroundColor: '#f9f9f9',
-    },
-    button: {
-        backgroundColor: '#007AFF',
-        paddingVertical: 14,
-        borderRadius: 8,
         alignItems: 'center',
-        marginTop: 8,
+        paddingHorizontal: 24,
+        // paddingTop: 16,
     },
-    buttonText: {
-        color: '#fff',
-        fontSize: 18,
-        fontWeight: '600',
+    logoContainer: {
+        alignItems: 'center',
+    },
+    logoWrapper: {
+        flexDirection: 'row',
+        marginBottom: 24,
+        elevation: 5,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.3,
+        shadowRadius: 8,
+    },
+    logoLeft: {
+        backgroundColor: Colors.secondary,
+        paddingVertical: 12,
+        paddingHorizontal: 16,
+        borderTopLeftRadius: 12,
+        borderBottomLeftRadius: 12,
+    },
+    logoRight: {
+        backgroundColor: Colors.white,
+        paddingVertical: 12,
+        paddingHorizontal: 16,
+        borderTopRightRadius: 12,
+        borderBottomRightRadius: 12,
+    },
+    logoTextLeft: {
+        color: Colors.white,
+        fontSize: 28,
+        fontWeight: '300',
+        letterSpacing: 1,
+    },
+    logoTextRight: {
+        color: Colors.secondary,
+        fontSize: 28,
+        fontWeight: 'bold',
+        letterSpacing: 1,
+    },
+    welcomeText: {
+        fontSize: 32,
+        fontWeight: 'bold',
+        color: Colors.white,
+        marginBottom: 8,
+        textAlign: 'center',
+    },
+    subtitleText: {
+        fontSize: 16,
+        color: Colors.secondary,
+        opacity: 0.9,
+        textAlign: 'center',
+        fontWeight: '300',
+    },
+    formSection: {
+        flex: 0.55,
+        backgroundColor: Colors.background,
+        borderTopLeftRadius: 32,
+        borderTopRightRadius: 32,
+        paddingHorizontal: 24,
+        paddingTop: 10,
+        marginTop: -16,
+        elevation: 10,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: -4 },
+        shadowOpacity: 0.1,
+        shadowRadius: 12,
+    },
+    loginCard: {
+        backgroundColor: Colors.white,
+        borderRadius: 24,
+        padding: 32,
+        elevation: 8,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.1,
+        shadowRadius: 12,
+    },
+    loginTitle: {
+        fontSize: 24,
+        fontWeight: 'bold',
+        color: Colors.text,
+        textAlign: 'center',
+        marginBottom: 32,
+    },
+    inputContainer: {
+        marginBottom: 20,
+    },
+    loginButton: {
+        marginTop: 16,
+        borderRadius: 16,
+        elevation: 4,
+        shadowColor: Colors.primary,
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.3,
+        shadowRadius: 8,
+    },
+    helpSection: {
+        marginTop: 24,
+        alignItems: 'center',
+    },
+    helpText: {
+        fontSize: 14,
+        color: Colors.textSecondary,
+        textAlign: 'center',
     },
 });
 
